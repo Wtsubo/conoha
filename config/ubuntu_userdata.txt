@@ -1,0 +1,69 @@
+#cloud-config
+hostname: conoha-ubuntu01
+users:
+  - default
+  - name : sdns
+    passwd: $6$Lb6V5S12$g83Jhcw5W3bQrjUQ4EaDF4AkiB19RP3auO4S33nbg7UFt6b9P5IJQESdx8dz7RHgbEs9PuXtEa9Zd/3sH5ACz1
+    shell: /bin/bash
+    chpasswd:
+      expire: true
+    lock_passwd: false
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin
+    ssh_pwauth: true
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8IHRQkOIp372+VDxfMGxzHWzW1AzYtQnVetJg3u2FpZoi2bU+tj+5PvC2x/n1Pa2YPQ87GsGrOxLBD2ONK3XYdfjYFODn3vMFL+tQERSpT7RCIzD+wBtlxGSoGcX+CcKNl5xB6lJWC3D4b3DM1jjXrtP/Gd1dPOuwlE7O7VXgTKGrFHLONM9gP5u7kpJdSckkgNG94vxU9Rwm3HhQfB6udvMLB/awjbenZtZNLoGbTC5cgcUgV1OBQs3DhaYqWxbQDeli0nWNmuQskVfmC5ks695QY4AFLvaSSRu1tu1mb1vTYR6yeulI7K8uWxi3umCsDnnKlRbUVxTEGtk/0Pl5 wtsubota@wtsubo-pro.local
+bootcmd:
+timezone: Asia/Tokyo
+locale: ja_JP.utf8
+#  Comment out for the package options that could not be used at Conoha.
+#package_upgrade: true
+#packages:
+#  - gcc
+#  - make
+#  - sysstat
+#  - tree
+#  - multitail
+#  - nmap
+#  - git
+#  - build-essential
+#  - tcpdump
+#  - iperf3
+#  - inetutils-traceroute
+#  - vim
+#  - screen
+#  - ruby
+#  - ruby-bundler
+write_files:
+  - content: |
+      # Enable to use IPv6
+      network:
+          ethernets:
+              eth0:
+                  addresses: []
+                  dhcp4: true
+                  dhcp6: true
+                  accept-ra: true
+                  optional: true
+          version: 2
+    owner: root:root
+    path: /etc/netplan/11-gmovps-enable-ipv6.yaml
+    permissions: '0644'
+runcmd:
+  - netplan apply
+  - usermod -aG sudo sdns
+  - apt --yes update
+  - apt --yes install gcc make sysstat tree multitail nmap git build-essential tcpdump iperf3 inetutils-traceroute vim screen ruby ruby-bundler
+#  Comment out for the interuption at cloudinit update.
+#  - apt-get --yes upgrade
+#
+  - cd /tmp
+  - git clone https://github.com/Microsoft/ntttcp-for-linux
+  - cd /tmp/ntttcp-for-linux/src
+  - make
+  - make install
+power_state:
+  delay: "+2"
+  mode: reboot
+  message: Reboot after init setting on clout init
+  timeout: 10
